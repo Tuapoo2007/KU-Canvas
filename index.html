@@ -490,7 +490,7 @@
             const d = document.createElement('div');
             d.textContent = text;
             // inline style เพื่อให้สีคงที่ตอน html2canvas วาดภาพ
-            d.style.cssText = `font-weight:${weight};font-size:${size}px;color:${color};line-height:1.2;margin-top:${marginTop}px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+            d.style.cssText = `font-weight:${weight};font-size:${size}px;color:${color};line-height:1.4;margin-top:${marginTop}px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
             return d;
         }
 
@@ -502,7 +502,7 @@
             const right = clamp(((endMins - MIN_TIME * 60) / TOTAL_MINUTES) * 100, 0, 100);
 
             const block = document.createElement('div');
-            block.className = `course-block absolute rounded-md p-1.5 shadow-md flex flex-col justify-center overflow-hidden cursor-pointer hover:brightness-110 active:scale-95 transition-all border border-white/40 text-white ${day.cls}`;
+            block.className = `course-block absolute rounded-md px-1.5 py-1 shadow-md flex flex-col justify-center overflow-hidden cursor-pointer hover:brightness-110 active:scale-95 transition-all border border-white/40 text-white ${day.cls}`;
             block.dataset.id = course.id;
             block.style.left = `${left}%`;
             block.style.width = `${Math.max(right - left, 0)}%`;
@@ -682,6 +682,15 @@
                         doc.querySelectorAll('.course-block').forEach(b => {
                             b.style.animation = 'none'; b.style.transition = 'none';
                             b.style.opacity = '1'; b.style.transform = 'none';
+                            b.style.padding = '2px 6px';
+                            // html2canvas วาดตัวอักษรไทยต่ำกว่าเบราว์เซอร์ ถ้าบรรทัดยัง overflow:hidden ส่วนล่างจะถูกตัด
+                            // บล็อกวิชาเองยัง overflow:hidden อยู่ จึงยังตัดข้อความยาวที่ขอบบล็อกได้เหมือนเดิม
+                            b.querySelectorAll('div').forEach(d => {
+                                d.style.overflow = 'visible';
+                                d.style.textOverflow = 'clip';
+                                d.style.lineHeight = '1.45';
+                                d.style.paddingBottom = '1px';
+                            });
                         });
                     }
                 });
