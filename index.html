@@ -120,10 +120,10 @@
         </header>
 
         <!-- Main Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start">
             
             <!-- Form Section -->
-            <div id="formSection" class="lg:col-span-3 card-dark rounded-2xl p-5 border border-cyan-500/20 shadow-lg sticky top-6 transition-colors duration-300">
+            <div id="formSection" class="w-full lg:col-span-3 card-dark rounded-2xl p-5 border border-cyan-500/20 shadow-lg lg:sticky lg:top-6 transition-colors duration-300 z-10">
                 <div class="flex items-center gap-2 mb-5">
                     <div class="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 border border-cyan-500/30">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
@@ -191,7 +191,7 @@
             </div>
 
             <!-- Timetable Section -->
-            <div class="lg:col-span-9 overflow-hidden rounded-2xl">
+            <div class="w-full lg:col-span-9 overflow-hidden rounded-2xl">
                 <div id="timetableContainer" class="card-dark p-4 md:p-6 border border-cyan-500/20 shadow-lg transition-colors duration-300 w-full overflow-x-auto">
                     
                     <div id="exportHeader" class="hidden mb-6 flex items-center justify-between border-b border-gray-700 pb-4">
