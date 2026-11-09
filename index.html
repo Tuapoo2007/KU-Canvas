@@ -231,7 +231,7 @@
                             <div class="w-[80px] flex-shrink-0 flex items-center justify-center font-bold text-xs opacity-90 border-r border-gray-700/30 h-full">
                                 วัน/เวลา
                             </div>
-                            <div id="timeGrid" class="flex w-full relative h-full text-[10px] md:text-xs opacity-75 font-medium"></div>
+                            <div id="timeGrid" class="flex w-full relative h-full text-[11px] md:text-xs opacity-90 font-semibold"></div>
                         </div>
 
                         <!-- Days Grid -->
@@ -339,7 +339,7 @@
                 dayRow.className = 'flex items-center relative h-16 bg-black/10 rounded-lg border border-gray-700/30';
                 
                 const dayLabel = document.createElement('div');
-                dayLabel.className = 'w-[80px] flex-shrink-0 flex items-center justify-center font-medium text-sm opacity-80 border-r border-gray-700/50 h-full';
+                dayLabel.className = 'w-[80px] flex-shrink-0 flex items-center justify-center font-medium text-sm opacity-90 border-r border-gray-700/50 h-full';
                 dayLabel.textContent = day.name;
                 
                 const dayTrack = document.createElement('div');
@@ -396,7 +396,7 @@
                 const dayConfig = days.find(d => d.id === course.day);
 
                 const block = document.createElement('div');
-                block.className = `course-block absolute top-1 bottom-1 rounded-md p-1.5 shadow-md flex flex-col justify-center overflow-hidden cursor-pointer hover:brightness-110 active:scale-95 transition-all border border-white/20 text-white ${dayConfig.class}`;
+                block.className = `course-block absolute top-1 bottom-1 rounded-md p-2 shadow-md flex flex-col justify-center overflow-hidden cursor-pointer hover:brightness-110 active:scale-95 transition-all border border-white/30 text-white ${dayConfig.class}`;
                 block.style.left = `${leftPercent}%`;
                 block.style.width = `${widthPercent}%`;
                 
@@ -422,8 +422,8 @@
                 };
 
                 let contentHTML = `
-                    <div class="font-bold text-xs whitespace-nowrap overflow-hidden text-ellipsis leading-tight">${course.code}</div>
-                    <div class="text-[10px] font-medium opacity-90 whitespace-nowrap overflow-hidden text-ellipsis leading-tight">${course.name}</div>
+                    <div class="font-bold text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis leading-snug">${course.code}</div>
+                    <div class="text-[11px] sm:text-xs font-medium opacity-95 whitespace-nowrap overflow-hidden text-ellipsis leading-snug">${course.name}</div>
                 `;
 
                 let details = [];
@@ -432,7 +432,7 @@
                 if (course.type) details.push(course.type);
 
                 if (details.length > 0) {
-                    contentHTML += `<div class="text-[9px] opacity-75 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">${details.join(' | ')}</div>`;
+                    contentHTML += `<div class="text-[10px] sm:text-[11px] opacity-90 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">${details.join(' | ')}</div>`;
                 }
 
                 block.innerHTML = contentHTML;
@@ -519,7 +519,7 @@
 
             html2canvas(container, {
                 backgroundColor: getComputedStyle(container).backgroundColor,
-                scale: 2,
+                scale: 3, // เพิ่มความคมชัดสูงสุด
                 useCORS: true,
                 width: fullWidth,
                 windowWidth: fullWidth
