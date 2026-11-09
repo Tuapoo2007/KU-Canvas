@@ -1,5 +1,5 @@
 // Service worker: ให้เปิดแอปได้แม้ออฟไลน์ (หลังเคยเปิดออนไลน์มาแล้วหนึ่งครั้ง)
-const CACHE = 'ku-schedule-v2';
+const CACHE = 'ku-schedule-v3';
 const CORE = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {

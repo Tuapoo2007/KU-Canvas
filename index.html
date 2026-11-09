@@ -79,7 +79,7 @@
 
     <!-- Modal ต้อนรับ (แสดงครั้งแรกครั้งเดียว) -->
     <div id="welcomeModal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle"
-         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
         <div class="bg-white text-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-[90%] mx-auto text-center animate-pop-in">
             <h2 id="welcomeTitle" class="text-3xl font-bold mb-4 text-gray-900">อ่านก่อน!</h2>
             <p class="text-sm text-gray-600 mb-6 leading-relaxed">
@@ -274,7 +274,7 @@
         const TOTAL_MINUTES = (MAX_TIME - MIN_TIME) * 60;
         const LANE_HEIGHT = 64;            // px ต่อ 1 แถว (วิชาซ้อนกันจะเพิ่มแถว)
         const MAX_CANVAS_PIXELS = 16e6;    // กัน canvas ใหญ่เกินจนมือถือสร้างรูปไม่ได้
-        const KEY_COURSES = 'ku_courses', KEY_THEME = 'ku_theme', KEY_WELCOME = 'ku_welcome_seen';
+        const KEY_COURSES = 'ku_courses', KEY_THEME = 'ku_theme';
 
         const DAYS = [
             { id: 'mon', name: 'จันทร์',    cls: 'bg-mon' },
@@ -329,9 +329,8 @@
         const show = el => el.classList.remove('hidden');
         const hide = el => el.classList.add('hidden');
 
-        // Welcome (แสดงครั้งเดียว)
-        if (!store.get(KEY_WELCOME)) show($('welcomeModal'));
-        $('welcomeOk').addEventListener('click', () => { hide($('welcomeModal')); store.set(KEY_WELCOME, '1'); });
+        // Welcome: แสดงทุกครั้งที่เข้าเว็บ (modal เปิดอยู่ตั้งแต่ HTML ไม่ต้องรอ JS)
+        $('welcomeOk').addEventListener('click', () => hide($('welcomeModal')));
 
         // Confirm (คืนค่าเป็น Promise<boolean>)
         let confirmResolver = null;
@@ -490,7 +489,7 @@
             const d = document.createElement('div');
             d.textContent = text;
             // inline style เพื่อให้สีคงที่ตอน html2canvas วาดภาพ
-            d.style.cssText = `font-weight:${weight};font-size:${size}px;color:${color};line-height:1.4;margin-top:${marginTop}px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+            d.style.cssText = `font-weight:${weight};font-size:${size}px;color:${color};line-height:1.45;margin-top:${marginTop}px;white-space:normal;overflow-wrap:anywhere;word-break:break-word;`;
             return d;
         }
 
@@ -502,12 +501,12 @@
             const right = clamp(((endMins - MIN_TIME * 60) / TOTAL_MINUTES) * 100, 0, 100);
 
             const block = document.createElement('div');
-            block.className = `course-block absolute rounded-md px-1.5 py-1 shadow-md flex flex-col justify-center overflow-hidden cursor-pointer hover:brightness-110 active:scale-95 transition-all border border-white/40 text-white ${day.cls}`;
+            block.className = `course-block absolute rounded-md px-2 py-1.5 shadow-md flex flex-col justify-center overflow-hidden cursor-pointer hover:brightness-110 active:scale-95 transition-all border border-white/40 text-white ${day.cls}`;
             block.dataset.id = course.id;
             block.style.left = `${left}%`;
             block.style.width = `${Math.max(right - left, 0)}%`;
-            block.style.top = `${course._lane * LANE_HEIGHT + 4}px`;
-            block.style.height = `${LANE_HEIGHT - 8}px`;
+            block.dataset.lane = course._lane;
+            block.style.minHeight = `${LANE_HEIGHT - 8}px`;   // ความสูงจริงคำนวณใน layoutRows() ตามจำนวนบรรทัด
             block.tabIndex = 0;
             block.setAttribute('role', 'button');
 
@@ -516,10 +515,10 @@
             block.setAttribute('aria-label', `${course.code} ${course.name} วัน${day.name} ${course.startTime} ถึง ${course.endTime} กดเพื่อลบ`);
 
             block.append(
-                textLine(course.code, 12, 700, '#ffffff'),
-                textLine(course.name, 10, 500, '#f3f4f6')
+                textLine(course.code, 15, 700, '#ffffff'),
+                textLine(course.name, 13, 500, '#f3f4f6', 1)
             );
-            if (details.length) block.append(textLine(details.join(' | '), 9, 400, '#e5e7eb', 2));
+            if (details.length) block.append(textLine(details.join(' | '), 12, 400, '#e5e7eb', 3));
 
             if (animate) {
                 block.classList.add('animate-pop-in');
@@ -534,13 +533,37 @@
             return block;
         }
 
+        // จัดความสูงแถว: บล็อกที่ข้อความยาวจะยืดลง และแถววัน/lane ขยายตาม เพื่อให้อ่านได้ครบ
+        function layoutRows() {
+            const info = DAYS.map(day => {
+                const blocks = [...$(`track-${day.id}`).querySelectorAll('.course-block')];
+                blocks.forEach(b => { b.style.height = 'auto'; b.style.top = '0px'; });
+                return { day, blocks };
+            });
+            info.forEach(({ day, blocks }) => {
+                const lanes = Math.max(1, ...blocks.map(b => +b.dataset.lane + 1));
+                const laneH = Array(lanes).fill(LANE_HEIGHT);
+                blocks.forEach(b => {
+                    const l = +b.dataset.lane;
+                    laneH[l] = Math.max(laneH[l], Math.ceil(b.offsetHeight) + 8 + 4);  // +4 เผื่อความต่างตอน export
+                });
+                const offs = []; let acc = 0;
+                laneH.forEach(h => { offs.push(acc); acc += h; });
+                blocks.forEach(b => {
+                    const l = +b.dataset.lane;
+                    b.style.top = `${offs[l] + 4}px`;
+                    b.style.height = `${laneH[l] - 8}px`;
+                });
+                $(`row-${day.id}`).style.height = `${acc}px`;
+            });
+        }
+
         function renderCourses({ animateId = null, initial = false } = {}) {
             document.querySelectorAll('.course-block').forEach(b => b.remove());
 
             DAYS.forEach(day => {
                 const list = courses.filter(c => c.day === day.id);
-                const lanes = assignLanes(list);
-                $(`row-${day.id}`).style.height = `${lanes * LANE_HEIGHT}px`;
+                assignLanes(list);
                 const track = $(`track-${day.id}`);
                 list.forEach(c => {
                     const idx = courses.indexOf(c);
@@ -550,6 +573,7 @@
             });
 
             $('emptyHint').classList.toggle('hidden', courses.length > 0);
+            layoutRows();
         }
 
         function saveAndRender(opts) {
@@ -648,6 +672,7 @@
             try {
                 // รอฟอนต์ Prompt และรูปให้พร้อม ไม่งั้นภาพที่ได้จะใช้ฟอนต์สำรอง/รูปหาย
                 if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                layoutRows();   // คำนวณความสูงใหม่หลังฟอนต์พร้อม
                 await Promise.all([...container.querySelectorAll('img')].map(img => img.decode ? img.decode().catch(() => {}) : null));
 
                 const fullWidth = Math.max(container.scrollWidth, container.offsetWidth);
@@ -682,15 +707,7 @@
                         doc.querySelectorAll('.course-block').forEach(b => {
                             b.style.animation = 'none'; b.style.transition = 'none';
                             b.style.opacity = '1'; b.style.transform = 'none';
-                            b.style.padding = '2px 6px';
-                            // html2canvas วาดตัวอักษรไทยต่ำกว่าเบราว์เซอร์ ถ้าบรรทัดยัง overflow:hidden ส่วนล่างจะถูกตัด
-                            // บล็อกวิชาเองยัง overflow:hidden อยู่ จึงยังตัดข้อความยาวที่ขอบบล็อกได้เหมือนเดิม
-                            b.querySelectorAll('div').forEach(d => {
-                                d.style.overflow = 'visible';
-                                d.style.textOverflow = 'clip';
-                                d.style.lineHeight = '1.45';
-                                d.style.paddingBottom = '1px';
-                            });
+                            b.style.overflow = 'visible';   // กันขอบล่างตัดข้อความ (ความสูงเผื่อไว้แล้ว)
                         });
                     }
                 });
@@ -726,6 +743,9 @@
         populateForm();
         initializeGrid();
         renderCourses({ initial: true });
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutRows);
+        let resizeTimer;
+        window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(layoutRows, 150); });
 
         if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
             window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
