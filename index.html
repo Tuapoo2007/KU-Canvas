@@ -216,11 +216,11 @@
                                 <img src="ku.jpg" alt="KU Logo" class="w-full h-full object-cover">
                             </div>
                             <div>
-                                <h2 class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-green-400 bg-clip-text text-transparent">ตารางเรียน : Class Schedule</h2>
-                                <p class="text-xs opacity-70">มหาวิทยาลัยเกษตรศาสตร์</p>
+                                <h2 class="text-2xl font-bold text-cyan-300">ตารางเรียน : Class Schedule</h2>
+                                <p class="text-xs opacity-80">มหาวิทยาลัยเกษตรศาสตร์</p>
                             </div>
                         </div>
-                        <div class="text-right text-xs opacity-60">
+                        <div class="text-right text-xs opacity-75">
                             IG: noar.fx
                         </div>
                     </div>
@@ -510,17 +510,27 @@
             
             exportHeader.classList.remove('hidden'); 
             
+            const originalWidth = container.style.width;
+            const originalMaxWidth = container.style.maxWidth;
+            const fullWidth = container.scrollWidth;
+            
+            container.style.width = fullWidth + 'px';
+            container.style.maxWidth = 'none';
+
             html2canvas(container, {
                 backgroundColor: getComputedStyle(container).backgroundColor,
                 scale: 2,
                 useCORS: true,
-                windowWidth: 1200
+                width: fullWidth,
+                windowWidth: fullWidth
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'ku-schedule.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 
+                container.style.width = originalWidth;
+                container.style.maxWidth = originalMaxWidth;
                 exportHeader.classList.add('hidden');
             });
         }
