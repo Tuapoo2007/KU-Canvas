@@ -4,76 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>จัดตารางเรียน KU</title>
-    
-    <!-- เชื่อมโยง Manifest และ โลโก้สำหรับติดตั้งเป็นแอป -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="ku.jpg">
-    <meta name="theme-color" content="#0b132b">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Manifest และไอคอนสำหรับติดตั้งเป็นแอป -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="theme-color" content="#0b132b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="KU Schedule">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Prompt', 'sans-serif'] },
-                    colors: {
-                        ku: { dark: '#0b132b', green: '#004d40', light: '#f3f4f6' },
-                        cyan: { 400: '#22d3ee', 500: '#06b6d4' }
-                    }
-                }
-            }
+            theme: { extend: { fontFamily: { sans: ['Prompt', 'sans-serif'] } } }
         }
     </script>
     <style>
         body { font-family: 'Prompt', sans-serif; }
-        .theme-dark { background-color: #0b132b; color: white; }
-        .theme-green { background-color: #004d40; color: white; }
-        .theme-light { background-color: #f3f4f6; color: #1f2937; }
-        
-        .card-dark { background-color: #1c2541; border-color: #3a506b; }
-        .card-green { background-color: #00695c; border-color: #00897b; }
-        .card-light { background-color: white; border-color: #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        
-        .neon-border { box-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
+
+        /* ---------- ธีม (ใช้ CSS variables แทนการสลับคลาสทีละการ์ด) ---------- */
+        body.theme-dark  { --page-bg:#0b132b; --page-fg:#fff;    --card-bg:#1c2541; }
+        body.theme-green { --page-bg:#004d40; --page-fg:#fff;    --card-bg:#00695c; }
+        body.theme-light { --page-bg:#f3f4f6; --page-fg:#1f2937; --card-bg:#fff; }
+        body { background-color: var(--page-bg); color: var(--page-fg); }
+        .card { background-color: var(--card-bg); }
+        body.theme-light .card { box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); }
+
+        .theme-btn { flex:1; padding:.5rem 1rem; font-size:.875rem; font-weight:500; border-radius:.5rem; transition:background-color .2s; }
+        .theme-btn:hover { background:rgba(255,255,255,.1); }
+        .theme-btn.active { background:rgba(6,182,212,.2); color:#67e8f9; }
+        body.theme-light .theme-btn:hover { background:rgba(0,0,0,.05); }
+        body.theme-light .theme-btn.active { color:#0e7490; }
+
+        /* ข้อความหัวรูปตอน export ปรับสีตามธีม */
+        .export-title { color:#67e8f9; }
+        .export-sub   { color:#d1d5db; }
+        body.theme-light .export-title { color:#0e7490; }
+        body.theme-light .export-sub   { color:#4b5563; }
+
+        .neon-border { box-shadow: 0 0 10px rgba(6,182,212,.5); }
+
         /* สีประจำวัน */
-        .bg-mon { background-color: #b8860b; } 
-        .bg-tue { background-color: #c2185b; } 
-        .bg-wed { background-color: #2e7d32; } 
-        .bg-thu { background-color: #e65100; } 
-        .bg-fri { background-color: #1565c0; } 
-        .bg-sat { background-color: #6a1b9a; } 
-        .bg-sun { background-color: #c62828; } 
+        .bg-mon { background-color:#b8860b; } .bg-tue { background-color:#c2185b; }
+        .bg-wed { background-color:#2e7d32; } .bg-thu { background-color:#e65100; }
+        .bg-fri { background-color:#1565c0; } .bg-sat { background-color:#6a1b9a; }
+        .bg-sun { background-color:#c62828; }
 
         @keyframes popIn {
-            0% { transform: scale(0.8) translateY(10px); opacity: 0; }
-            70% { transform: scale(1.05) translateY(-2px); opacity: 1; }
+            0%   { transform: scale(.8) translateY(10px); opacity: 0; }
+            70%  { transform: scale(1.05) translateY(-2px); opacity: 1; }
             100% { transform: scale(1) translateY(0); opacity: 1; }
         }
         @keyframes popOut {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0.8); opacity: 0; }
+            from { transform: scale(1); opacity: 1; }
+            to   { transform: scale(.8); opacity: 0; }
         }
-        .animate-pop-in { 
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
-        }
-        .animate-pop-out { 
-            animation: popOut 0.3s ease-in forwards; 
-            pointer-events: none; 
+        /* fill-mode "both": ซ่อนไว้ระหว่างรอ delay โดยไม่ต้องใช้ inline opacity:0 */
+        .animate-pop-in  { animation: popIn .4s cubic-bezier(.175,.885,.32,1.275) both; }
+        .animate-pop-out { animation: popOut .3s ease-in forwards; pointer-events: none; }
+
+        .course-block:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-pop-in, .animate-pop-out { animation-duration: .01s; animation-delay: 0s !important; }
         }
     </style>
 </head>
 <body class="theme-dark min-h-screen transition-colors duration-300">
 
-    <!-- Modal แจ้งเตือนต้อนรับ (ตามข้อความเดิมเป๊ะๆ และเอา GitHub ออกแล้ว) -->
-    <div id="welcomeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white text-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-[90%] mx-auto text-center transform transition-all animate-pop-in">
-            <h2 class="text-3xl font-bold mb-4 text-gray-900">อ่านก่อน!</h2>
+    <!-- Modal ต้อนรับ (แสดงครั้งแรกครั้งเดียว) -->
+    <div id="welcomeModal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div class="bg-white text-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-[90%] mx-auto text-center animate-pop-in">
+            <h2 id="welcomeTitle" class="text-3xl font-bold mb-4 text-gray-900">อ่านก่อน!</h2>
             <p class="text-sm text-gray-600 mb-6 leading-relaxed">
                 เว็บไซต์นี้เป็นเพียงการสร้างตารางการเรียนเพื่อวางแผนและจัดตารางเรียน เป็นการทำงานลวก ๆ และไม่ได้เชื่อมต่อฐานข้อมูลใด ๆ ดังนั้นเพิ่มรายวิชาเอาเอง นะ จ๊ะ จุ๊บ ๆ<br><br>
                 <span class="text-xs text-red-500 font-medium">(และอย่ากดรีเฟรชหน้าจอหากเขียนไปแล้ว เพราะมันไม่เซฟนะจั๊บ)</span>
@@ -82,38 +90,58 @@
                 <svg class="w-5 h-5 text-pink-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
                 IG: noar.fx
             </div>
-            <button onclick="closeModal()" class="w-full bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white font-bold py-3 rounded-xl transition-all shadow-md">
-                ตกลง
-            </button>
+            <button id="welcomeOk" class="w-full bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white font-bold py-3 rounded-xl transition-all shadow-md">ตกลง</button>
         </div>
     </div>
 
-    <!-- Modal ยืนยันการลบวิชา -->
-    <div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 hidden">
-        <div class="bg-gray-900 text-white border border-red-500/30 p-8 rounded-2xl shadow-2xl max-w-sm w-[90%] mx-auto text-center transform transition-all animate-pop-in">
+    <!-- Modal ยืนยัน (ใช้ทั้งลบวิชาเดียวและล้างทั้งหมด) -->
+    <div id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div class="bg-gray-900 text-white border border-red-500/30 p-8 rounded-2xl shadow-2xl max-w-sm w-[90%] mx-auto text-center animate-pop-in">
             <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-4 border border-red-500/30">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </div>
-            <h3 class="text-xl font-bold mb-2">ยืนยันการลบวิชา</h3>
-            <p id="deleteModalText" class="text-sm text-gray-300 mb-6 leading-relaxed">ต้องการลบวิชานี้ออกจากตารางหรือไม่?</p>
+            <h3 id="confirmTitle" class="text-xl font-bold mb-2">ยืนยันการลบ</h3>
+            <p id="confirmText" class="text-sm text-gray-300 mb-6 leading-relaxed break-words"></p>
             <div class="flex gap-3">
-                <button onclick="closeDeleteModal(false)" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl transition-all active:scale-95">
-                    ยกเลิก
-                </button>
-                <button onclick="closeDeleteModal(true)" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl transition-all active:scale-95 shadow-lg shadow-red-500/30">
-                    ลบวิชา
-                </button>
+                <button id="confirmCancel" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl transition-all active:scale-95">ยกเลิก</button>
+                <button id="confirmOk" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl transition-all active:scale-95 shadow-lg shadow-red-500/30">ลบ</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal พรีวิวรูปที่ส่งออก (ใช้ได้แม้บนเบราว์เซอร์ในแอป เช่น LINE/Facebook) -->
+    <div id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewTitle"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-gray-900 text-white border border-cyan-500/30 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col animate-pop-in">
+            <div class="flex items-center justify-between px-5 py-3 border-b border-gray-700">
+                <h3 id="previewTitle" class="font-bold">ตารางเรียนของคุณพร้อมแล้ว 🎉</h3>
+                <button id="previewClose" aria-label="ปิด" class="w-8 h-8 rounded-full hover:bg-white/10 text-xl leading-none">×</button>
+            </div>
+            <div class="p-4 overflow-auto flex-1 bg-black/30">
+                <img id="previewImg" alt="ตัวอย่างตารางเรียน" class="mx-auto max-w-full h-auto rounded-lg">
+            </div>
+            <div class="px-5 py-3 border-t border-gray-700 flex flex-wrap items-center gap-3 justify-between">
+                <p class="text-xs text-gray-400">ถ้าปุ่มดาวน์โหลดไม่ทำงาน ให้กดค้างที่รูปแล้วเลือก “บันทึกรูปภาพ”</p>
+                <div class="flex gap-2">
+                    <button id="previewShare" class="hidden px-4 py-2 rounded-xl text-sm font-bold border border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 active:scale-95 transition-all">แชร์</button>
+                    <a id="previewDownload" class="px-5 py-2 rounded-xl text-sm font-bold bg-cyan-500 hover:bg-cyan-400 text-gray-900 active:scale-95 transition-all cursor-pointer">ดาวน์โหลด .png</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" role="status" aria-live="polite"
+         class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] max-w-[90%] px-4 py-2.5 rounded-xl text-sm font-medium shadow-xl opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
     <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 pt-8">
-        
+
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div class="flex items-center gap-4">
                 <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center bg-gray-900 rounded-xl overflow-hidden neon-border">
-                    <img src="ku.jpg" alt="KU Logo" class="w-full h-full object-cover">
+                    <img src="data:image/jpeg;base64,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" alt="KU Logo" width="64" height="64" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-green-400 bg-clip-text text-transparent">จัดตารางเรียน KU</h1>
@@ -122,27 +150,27 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                <div class="flex rounded-xl overflow-hidden border border-cyan-500/30 p-1 bg-black/20">
-                    <button onclick="setTheme('dark')" class="flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors bg-cyan-500/20 text-cyan-300" id="btn-theme-dark">มืด</button>
-                    <button onclick="setTheme('green')" class="flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-white/10" id="btn-theme-green">เขียวเกษตร</button>
-                    <button onclick="setTheme('light')" class="flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-white/10" id="btn-theme-light">สว่าง</button>
+                <div class="flex rounded-xl overflow-hidden border border-cyan-500/30 p-1 bg-black/20" role="group" aria-label="เลือกธีม">
+                    <button class="theme-btn" data-theme="dark">มืด</button>
+                    <button class="theme-btn" data-theme="green">เขียวเกษตร</button>
+                    <button class="theme-btn" data-theme="light">สว่าง</button>
                 </div>
-                <button onclick="clearSchedule()" class="px-6 py-2 rounded-xl text-sm font-bold border border-red-500/50 text-red-400 hover:bg-red-500/10 active:scale-95 transition-all flex items-center justify-center gap-2">
+                <button id="clearBtn" class="px-6 py-2 rounded-xl text-sm font-bold border border-red-500/50 text-red-400 hover:bg-red-500/10 active:scale-95 transition-all flex items-center justify-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     ล้างข้อมูล
                 </button>
-                <button onclick="exportTimetable()" class="px-6 py-2 rounded-xl text-sm font-bold bg-cyan-500 hover:bg-cyan-400 text-gray-900 active:scale-95 transition-all neon-border flex items-center justify-center gap-2">
+                <button id="exportBtn" class="px-6 py-2 rounded-xl text-sm font-bold bg-cyan-500 hover:bg-cyan-400 text-gray-900 active:scale-95 transition-all neon-border flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    ส่งออกตารางเรียน (.png)
+                    <span id="exportLabel">ส่งออกตารางเรียน (.png)</span>
                 </button>
             </div>
         </header>
 
         <!-- Main Layout -->
         <div class="flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start">
-            
+
             <!-- Form Section -->
-            <div id="formSection" class="w-full lg:col-span-3 card-dark rounded-2xl p-5 border border-cyan-500/20 shadow-lg lg:sticky lg:top-6 transition-colors duration-300">
+            <div class="card w-full lg:col-span-3 rounded-2xl p-5 border border-cyan-500/20 shadow-lg lg:sticky lg:top-6 transition-colors duration-300">
                 <div class="flex items-center gap-2 mb-5">
                     <div class="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 border border-cyan-500/30">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
@@ -150,23 +178,23 @@
                     <h2 class="text-lg font-bold">เพิ่มวิชาเรียน</h2>
                 </div>
 
-                <form id="courseForm" class="space-y-4">
+                <form id="courseForm" class="space-y-4" autocomplete="off">
                     <div>
-                        <label class="block text-xs font-medium opacity-80 mb-1">รหัสรายวิชา <span class="text-red-400">*</span></label>
-                        <input type="text" id="courseCode" required placeholder="เช่น 01418111" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
+                        <label for="courseCode" class="block text-xs font-medium opacity-80 mb-1">รหัสรายวิชา <span class="text-red-400">*</span></label>
+                        <input type="text" id="courseCode" required maxlength="20" placeholder="เช่น 01418111" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium opacity-80 mb-1">ชื่อวิชา <span class="text-red-400">*</span></label>
-                        <input type="text" id="courseName" required placeholder="เช่น Computer Programming" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
+                        <label for="courseName" class="block text-xs font-medium opacity-80 mb-1">ชื่อวิชา <span class="text-red-400">*</span></label>
+                        <input type="text" id="courseName" required maxlength="80" placeholder="เช่น Computer Programming" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
                     </div>
-                    
+
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-medium opacity-80 mb-1">หมู่เรียน (Sec)</label>
-                            <input type="text" id="courseSec" placeholder="เช่น 1 หรือ 800" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 transition-all">
+                            <label for="courseSec" class="block text-xs font-medium opacity-80 mb-1">หมู่เรียน (Sec)</label>
+                            <input type="text" id="courseSec" maxlength="10" placeholder="เช่น 1 หรือ 800" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 transition-all">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium opacity-80 mb-1">ประเภท <span class="text-red-400">*</span></label>
+                            <label for="courseType" class="block text-xs font-medium opacity-80 mb-1">ประเภท <span class="text-red-400">*</span></label>
                             <select id="courseType" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 appearance-none">
                                 <option value="บรรยาย" class="bg-gray-800 text-white">บรรยาย (Lecture)</option>
                                 <option value="ปฏิบัติการ" class="bg-gray-800 text-white">ปฏิบัติการ (Lab)</option>
@@ -175,32 +203,24 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium opacity-80 mb-1">วัน <span class="text-red-400">*</span></label>
-                        <select id="courseDay" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 appearance-none">
-                            <option value="mon" class="bg-gray-800 text-white">จันทร์</option>
-                            <option value="tue" class="bg-gray-800 text-white">อังคาร</option>
-                            <option value="wed" class="bg-gray-800 text-white">พุธ</option>
-                            <option value="thu" class="bg-gray-800 text-white">พฤหัสบดี</option>
-                            <option value="fri" class="bg-gray-800 text-white">ศุกร์</option>
-                            <option value="sat" class="bg-gray-800 text-white">เสาร์</option>
-                            <option value="sun" class="bg-gray-800 text-white">อาทิตย์</option>
-                        </select>
+                        <label for="courseDay" class="block text-xs font-medium opacity-80 mb-1">วัน <span class="text-red-400">*</span></label>
+                        <select id="courseDay" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 appearance-none"></select>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-medium opacity-80 mb-1">เวลาเริ่ม <span class="text-red-400">*</span></label>
+                            <label for="startTime" class="block text-xs font-medium opacity-80 mb-1">เวลาเริ่ม <span class="text-red-400">*</span></label>
                             <select id="startTime" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 appearance-none"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-medium opacity-80 mb-1">เวลาเลิก <span class="text-red-400">*</span></label>
+                            <label for="endTime" class="block text-xs font-medium opacity-80 mb-1">เวลาเลิก <span class="text-red-400">*</span></label>
                             <select id="endTime" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 appearance-none"></select>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium opacity-80 mb-1">ตึก/ห้องเรียน</label>
-                        <input type="text" id="courseRoom" placeholder="เช่น 17208 หรือ SC2-401" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 transition-all">
+                        <label for="courseRoom" class="block text-xs font-medium opacity-80 mb-1">ตึก/ห้องเรียน</label>
+                        <input type="text" id="courseRoom" maxlength="30" placeholder="เช่น 17208 หรือ SC2-401" class="w-full bg-black/20 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 transition-all">
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full py-3 mt-4 rounded-xl text-sm font-bold bg-transparent border border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-gray-900 active:scale-95 transition-all duration-300">
@@ -211,36 +231,34 @@
 
             <!-- Timetable Section -->
             <div class="w-full lg:col-span-9 overflow-hidden rounded-2xl">
-                <div id="timetableContainer" class="card-dark p-4 md:p-6 border border-cyan-500/20 shadow-lg transition-colors duration-300 w-full overflow-x-auto">
-                    
-                    <!-- ส่วนหัวที่จะแสดงเฉพาะตอนกด Export รูป พร้อม IG: noar.fx -->
-                    <div id="exportHeader" class="hidden mb-6 flex items-center justify-between border-b border-gray-700 pb-4">
+                <div id="timetableContainer" class="card p-4 md:p-6 border border-cyan-500/20 shadow-lg transition-colors duration-300 w-full overflow-x-auto">
+
+                    <!-- ส่วนหัวที่แสดงเฉพาะตอน Export (เปิดใน onclone เท่านั้น) -->
+                    <div id="exportHeader" class="hidden mb-6 flex items-center justify-between border-b border-gray-500/40 pb-4">
                         <div class="flex items-center">
                             <div class="w-12 h-12 flex-shrink-0 mr-3 rounded-lg overflow-hidden border border-cyan-500/50">
-                                <img src="ku.jpg" alt="KU Logo" class="w-full h-full object-cover">
+                                <img src="data:image/jpeg;base64,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" alt="" width="48" height="48" class="w-full h-full object-cover">
                             </div>
                             <div>
-                                <h2 class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-green-400 bg-clip-text text-transparent">ตารางเรียน : Class Schedule</h2>
-                                <p class="text-xs opacity-70">มหาวิทยาลัยเกษตรศาสตร์</p>
+                                <h2 class="export-title text-2xl font-bold">ตารางเรียน : Class Schedule</h2>
+                                <p class="export-sub text-xs">มหาวิทยาลัยเกษตรศาสตร์</p>
                             </div>
                         </div>
-                        <div class="text-right text-xs opacity-50">
-                            IG: noar.fx
-                        </div>
+                        <div class="export-sub text-right text-xs">IG: noar.fx</div>
                     </div>
 
-                    <div class="min-w-[1050px]"> 
+                    <div class="min-w-[1050px]">
                         <!-- Time Headers -->
                         <div class="flex relative mb-2 bg-black/10 rounded-t-lg border border-gray-700/30 overflow-hidden h-10 items-center">
-                            <div class="w-[80px] flex-shrink-0 flex items-center justify-center font-bold text-xs opacity-90 border-r border-gray-700/30 h-full">
-                                วัน/เวลา
-                            </div>
+                            <div class="w-[80px] flex-shrink-0 flex items-center justify-center font-bold text-xs opacity-90 border-r border-gray-700/30 h-full">วัน/เวลา</div>
                             <div id="timeGrid" class="flex w-full relative h-full text-[10px] md:text-xs opacity-75 font-medium"></div>
                         </div>
 
                         <!-- Days Grid -->
                         <div id="daysGrid" class="flex flex-col gap-2 relative"></div>
                     </div>
+
+                    <p id="emptyHint" class="hidden text-center text-sm opacity-60 mt-5">ยังไม่มีรายวิชา — เพิ่มวิชาจากฟอร์มได้เลย (แตะที่วิชาในตารางเพื่อลบ)</p>
                 </div>
             </div>
 
@@ -248,323 +266,462 @@
     </div>
 
     <script>
-        const MIN_TIME = 8;  
-        const MAX_TIME = 20; 
+    (() => {
+        'use strict';
+
+        /* ===================== ค่าคงที่ ===================== */
+        const MIN_TIME = 8, MAX_TIME = 20;
         const TOTAL_MINUTES = (MAX_TIME - MIN_TIME) * 60;
-        
-        const days = [
-            { id: 'mon', name: 'จันทร์', class: 'bg-mon' },
-            { id: 'tue', name: 'อังคาร', class: 'bg-tue' },
-            { id: 'wed', name: 'พุธ', class: 'bg-wed' },
-            { id: 'thu', name: 'พฤหัสบดี', class: 'bg-thu' },
-            { id: 'fri', name: 'ศุกร์', class: 'bg-fri' },
-            { id: 'sat', name: 'เสาร์', class: 'bg-sat' },
-            { id: 'sun', name: 'อาทิตย์', class: 'bg-sun' }
+        const LANE_HEIGHT = 64;            // px ต่อ 1 แถว (วิชาซ้อนกันจะเพิ่มแถว)
+        const MAX_CANVAS_PIXELS = 16e6;    // กัน canvas ใหญ่เกินจนมือถือสร้างรูปไม่ได้
+        const KEY_COURSES = 'ku_courses', KEY_THEME = 'ku_theme', KEY_WELCOME = 'ku_welcome_seen';
+
+        const DAYS = [
+            { id: 'mon', name: 'จันทร์',    cls: 'bg-mon' },
+            { id: 'tue', name: 'อังคาร',    cls: 'bg-tue' },
+            { id: 'wed', name: 'พุธ',       cls: 'bg-wed' },
+            { id: 'thu', name: 'พฤหัสบดี', cls: 'bg-thu' },
+            { id: 'fri', name: 'ศุกร์',     cls: 'bg-fri' },
+            { id: 'sat', name: 'เสาร์',     cls: 'bg-sat' },
+            { id: 'sun', name: 'อาทิตย์',   cls: 'bg-sun' }
         ];
+        const dayById = Object.fromEntries(DAYS.map(d => [d.id, d]));
 
-        let courses = JSON.parse(localStorage.getItem('ku_courses')) || [];
-        let deleteResolver = null;
+        const $ = id => document.getElementById(id);
 
-        document.body.style.overflow = 'auto';
+        /* ===================== Storage (กัน error ในโหมดส่วนตัว) ===================== */
+        const store = {
+            get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+            set(k, v) { try { localStorage.setItem(k, v); } catch { /* ignore */ } }
+        };
 
-        function closeModal() {
-            const modal = document.getElementById('welcomeModal');
-            modal.style.opacity = '0';
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 300);
+        /* ===================== Helpers ===================== */
+        const timeToMinutes = s => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+        const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+        const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+        const fmtMinutes = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+
+        function loadCourses() {
+            try {
+                const raw = JSON.parse(store.get(KEY_COURSES));
+                if (!Array.isArray(raw)) return [];
+                return raw
+                    .filter(c => c && dayById[c.day] && /^\d{2}:\d{2}$/.test(c.startTime) && /^\d{2}:\d{2}$/.test(c.endTime)
+                        && timeToMinutes(c.endTime) > timeToMinutes(c.startTime))
+                    .map(c => ({ ...c, id: c.id || uid() }));   // รองรับข้อมูลเก่าที่ยังไม่มี id
+            } catch { return []; }
         }
 
-        function showDeleteModal(courseName) {
-            return new Promise((resolve) => {
-                const modal = document.getElementById('deleteModal');
-                const text = document.getElementById('deleteModalText');
-                text.textContent = `ต้องการลบวิชา "${courseName}" ออกจากตารางหรือไม่?`;
-                modal.classList.remove('hidden');
-                deleteResolver = resolve;
+        let courses = loadCourses();
+
+        let toastTimer;
+        function toast(msg, type = 'info') {
+            const el = $('toast');
+            el.textContent = msg;
+            const color = type === 'error' ? 'bg-red-600 text-white' : type === 'warn' ? 'bg-amber-500 text-gray-900' : 'bg-gray-800 text-white';
+            const base = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] max-w-[90%] px-4 py-2.5 rounded-xl text-sm font-medium shadow-xl pointer-events-none transition-opacity duration-300';
+            el.className = `${base} ${color} opacity-100`;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { el.className = `${base} ${color} opacity-0`; }, 3200);
+        }
+
+        /* ===================== Modals ===================== */
+        const show = el => el.classList.remove('hidden');
+        const hide = el => el.classList.add('hidden');
+
+        // Welcome (แสดงครั้งเดียว)
+        if (!store.get(KEY_WELCOME)) show($('welcomeModal'));
+        $('welcomeOk').addEventListener('click', () => { hide($('welcomeModal')); store.set(KEY_WELCOME, '1'); });
+
+        // Confirm (คืนค่าเป็น Promise<boolean>)
+        let confirmResolver = null;
+        function showConfirm({ title, message, okText = 'ลบ' }) {
+            return new Promise(resolve => {
+                $('confirmTitle').textContent = title;
+                $('confirmText').textContent = message;      // textContent: ปลอดภัยจาก XSS
+                $('confirmOk').textContent = okText;
+                confirmResolver = resolve;
+                show($('confirmModal'));
+                $('confirmCancel').focus();
             });
         }
-
-        function closeDeleteModal(result) {
-            const modal = document.getElementById('deleteModal');
-            modal.classList.add('hidden');
-            if (deleteResolver) {
-                deleteResolver(result);
-                deleteResolver = null;
-            }
+        function closeConfirm(result) {
+            hide($('confirmModal'));
+            if (confirmResolver) { confirmResolver(result); confirmResolver = null; }
         }
+        $('confirmCancel').addEventListener('click', () => closeConfirm(false));
+        $('confirmOk').addEventListener('click', () => closeConfirm(true));
 
-        function populateTimeSelects() {
-            const startSelect = document.getElementById('startTime');
-            const endSelect = document.getElementById('endTime');
-            
-            for(let h = MIN_TIME; h <= MAX_TIME; h++) {
-                for(let m = 0; m < 60; m += 30) {
+        // Preview
+        let previewUrl = null, previewBlob = null;
+        function closePreview() {
+            hide($('previewModal'));
+            if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+            previewBlob = null;
+            $('previewImg').removeAttribute('src');
+        }
+        $('previewClose').addEventListener('click', closePreview);
+        $('previewModal').addEventListener('click', e => { if (e.target === $('previewModal')) closePreview(); });
+        $('confirmModal').addEventListener('click', e => { if (e.target === $('confirmModal')) closeConfirm(false); });
+
+        $('previewShare').addEventListener('click', async () => {
+            if (!previewBlob) return;
+            try {
+                await navigator.share({ files: [new File([previewBlob], fileName(), { type: 'image/png' })], title: 'ตารางเรียน KU' });
+            } catch (e) { if (e.name !== 'AbortError') toast('แชร์ไม่สำเร็จ ลองกดค้างที่รูปเพื่อบันทึกแทน', 'warn'); }
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key !== 'Escape') return;
+            if (!$('confirmModal').classList.contains('hidden')) closeConfirm(false);
+            else if (!$('previewModal').classList.contains('hidden')) closePreview();
+            else if (!$('welcomeModal').classList.contains('hidden')) $('welcomeOk').click();
+        });
+
+        /* ===================== Theme ===================== */
+        function setTheme(name) {
+            if (!['dark', 'green', 'light'].includes(name)) name = 'dark';
+            document.body.classList.remove('theme-dark', 'theme-green', 'theme-light');
+            document.body.classList.add(`theme-${name}`);
+            document.querySelectorAll('.theme-btn').forEach(b => {
+                const active = b.dataset.theme === name;
+                b.classList.toggle('active', active);
+                b.setAttribute('aria-pressed', active);
+            });
+            store.set(KEY_THEME, name);
+        }
+        document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', () => setTheme(b.dataset.theme)));
+
+        /* ===================== ฟอร์ม ===================== */
+        function populateForm() {
+            const daySel = $('courseDay');
+            DAYS.forEach(d => daySel.add(new Option(d.name, d.id)));
+            daySel.querySelectorAll('option').forEach(o => o.className = 'bg-gray-800 text-white');
+
+            for (let h = MIN_TIME; h <= MAX_TIME; h++) {
+                for (let m = 0; m < 60; m += 30) {
                     if (h === MAX_TIME && m > 0) continue;
-                    const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-                    
-                    const option1 = new Option(timeStr, timeStr);
-                    const option2 = new Option(timeStr, timeStr);
-                    
-                    option1.className = "bg-gray-800 text-white";
-                    option2.className = "bg-gray-800 text-white";
-
-                    startSelect.add(option1);
-                    endSelect.add(option2);
+                    const t = fmtMinutes(h * 60 + m);
+                    [$('startTime'), $('endTime')].forEach(sel => {
+                        const o = new Option(t, t); o.className = 'bg-gray-800 text-white'; sel.add(o);
+                    });
                 }
             }
-            startSelect.value = "09:00";
-            endSelect.value = "10:30";
+            resetFormDefaults();
         }
 
+        function resetFormDefaults() {
+            $('courseDay').value = 'mon';
+            $('courseType').value = 'บรรยาย';
+            $('startTime').value = '09:00';
+            $('endTime').value = '10:30';
+            syncEndOptions();
+        }
+
+        // ปิดตัวเลือกเวลาเลิกที่ <= เวลาเริ่ม และเลื่อนอัตโนมัติถ้าไม่ถูกต้อง
+        function syncEndOptions(autoShift = false) {
+            const start = timeToMinutes($('startTime').value);
+            const end = $('endTime');
+            Array.from(end.options).forEach(o => { o.disabled = timeToMinutes(o.value) <= start; });
+            if (autoShift || timeToMinutes(end.value) <= start) {
+                const target = Math.min(start + 90, MAX_TIME * 60);
+                const pick = Array.from(end.options).find(o => !o.disabled && timeToMinutes(o.value) >= target)
+                          || Array.from(end.options).find(o => !o.disabled);
+                if (pick) end.value = pick.value;
+            }
+        }
+        $('startTime').addEventListener('change', () => syncEndOptions(true));
+
+        /* ===================== Grid ===================== */
         function initializeGrid() {
-            const timeGrid = document.getElementById('timeGrid');
+            const timeGrid = $('timeGrid');
             timeGrid.innerHTML = '';
-            
-            for(let h = MIN_TIME; h < MAX_TIME; h++) {
-                const timeBlock = document.createElement('div');
-                timeBlock.className = 'absolute top-0 bottom-0 flex items-center justify-center border-gray-700/20 whitespace-nowrap ' + (h !== MIN_TIME ? 'border-l' : '');
-                
-                const leftPercent = ((h - MIN_TIME) * 60 / TOTAL_MINUTES) * 100;
-                const widthPercent = (60 / TOTAL_MINUTES) * 100;
-                
-                timeBlock.style.left = `${leftPercent}%`;
-                timeBlock.style.width = `${widthPercent}%`;
-                
-                timeBlock.textContent = `${h}:00-${h+1}:00`;
-                timeGrid.appendChild(timeBlock);
+            for (let h = MIN_TIME; h < MAX_TIME; h++) {
+                const cell = document.createElement('div');
+                cell.className = 'absolute top-0 bottom-0 flex items-center justify-center border-gray-700/20 whitespace-nowrap ' + (h !== MIN_TIME ? 'border-l' : '');
+                cell.style.left = `${((h - MIN_TIME) * 60 / TOTAL_MINUTES) * 100}%`;
+                cell.style.width = `${(60 / TOTAL_MINUTES) * 100}%`;
+                cell.textContent = `${h}:00-${h + 1}:00`;
+                timeGrid.appendChild(cell);
             }
 
-            const daysGrid = document.getElementById('daysGrid');
-            daysGrid.innerHTML = '';
+            const grid = $('daysGrid');
+            grid.innerHTML = '';
+            DAYS.forEach(day => {
+                const row = document.createElement('div');
+                row.id = `row-${day.id}`;
+                row.className = 'flex items-stretch relative bg-black/10 rounded-lg border border-gray-700/30';
+                row.style.height = `${LANE_HEIGHT}px`;
 
-            days.forEach(day => {
-                const dayRow = document.createElement('div');
-                dayRow.className = 'flex items-center relative h-16 bg-black/10 rounded-lg border border-gray-700/30';
-                
-                const dayLabel = document.createElement('div');
-                dayLabel.className = 'w-[80px] flex-shrink-0 flex items-center justify-center font-medium text-sm opacity-80 border-r border-gray-700/50 h-full';
-                dayLabel.textContent = day.name;
-                
-                const dayTrack = document.createElement('div');
-                dayTrack.className = 'relative w-full h-full';
-                dayTrack.id = `track-${day.id}`;
+                const label = document.createElement('div');
+                label.className = 'w-[80px] flex-shrink-0 flex items-center justify-center font-medium text-sm opacity-80 border-r border-gray-700/50';
+                label.textContent = day.name;
 
-                for(let h = MIN_TIME; h <= MAX_TIME; h++) {
-                    const gridLine = document.createElement('div');
-                    gridLine.className = `absolute top-0 bottom-0 ${h === MAX_TIME ? 'border-r' : 'border-l'} border-gray-700/20`;
-                    
-                    if (h === MAX_TIME) {
-                        gridLine.style.right = '0';
-                    } else {
-                        gridLine.style.left = `${((h - MIN_TIME) * 60 / TOTAL_MINUTES) * 100}%`;
-                    }
-                    
-                    dayTrack.appendChild(gridLine);
+                const track = document.createElement('div');
+                track.className = 'relative w-full';
+                track.id = `track-${day.id}`;
+                for (let h = MIN_TIME; h <= MAX_TIME; h++) {
+                    const line = document.createElement('div');
+                    line.className = `absolute top-0 bottom-0 ${h === MAX_TIME ? 'border-r' : 'border-l'} border-gray-700/20`;
+                    if (h === MAX_TIME) line.style.right = '0';
+                    else line.style.left = `${((h - MIN_TIME) * 60 / TOTAL_MINUTES) * 100}%`;
+                    track.appendChild(line);
                 }
-
-                dayRow.appendChild(dayLabel);
-                dayRow.appendChild(dayTrack);
-                daysGrid.appendChild(dayRow);
+                row.append(label, track);
+                grid.appendChild(row);
             });
         }
 
-        function timeToMinutes(timeStr) {
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            return (hours * 60) + minutes;
+        // จัดวิชาที่เวลาซ้อนกันให้อยู่คนละ "lane" ภายในวันเดียวกัน
+        function assignLanes(list) {
+            const sorted = [...list].sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+            const laneEnds = [];
+            sorted.forEach(c => {
+                const s = timeToMinutes(c.startTime);
+                let lane = laneEnds.findIndex(end => end <= s);
+                if (lane === -1) { lane = laneEnds.length; laneEnds.push(0); }
+                laneEnds[lane] = timeToMinutes(c.endTime);
+                c._lane = lane;
+            });
+            return Math.max(1, laneEnds.length);
         }
 
-        function renderCourses(animateIndex = -1, isInitialLoad = false) {
-            days.forEach(day => {
-                const track = document.getElementById(`track-${day.id}`);
-                if (!track) return;
-                
-                Array.from(track.children).forEach(child => {
-                    if (child.classList.contains('course-block')) {
-                        child.remove();
-                    }
+        function textLine(text, size, weight, color, marginTop = 0) {
+            const d = document.createElement('div');
+            d.textContent = text;
+            // inline style เพื่อให้สีคงที่ตอน html2canvas วาดภาพ
+            d.style.cssText = `font-weight:${weight};font-size:${size}px;color:${color};line-height:1.2;margin-top:${marginTop}px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+            return d;
+        }
+
+        function buildBlock(course, animate, delay) {
+            const day = dayById[course.day];
+            const startMins = timeToMinutes(course.startTime);
+            const endMins = timeToMinutes(course.endTime);
+            const left = clamp(((startMins - MIN_TIME * 60) / TOTAL_MINUTES) * 100, 0, 100);
+            const right = clamp(((endMins - MIN_TIME * 60) / TOTAL_MINUTES) * 100, 0, 100);
+
+            const block = document.createElement('div');
+            block.className = `course-block absolute rounded-md p-1.5 shadow-md flex flex-col justify-center overflow-hidden cursor-pointer hover:brightness-110 active:scale-95 transition-all border border-white/40 text-white ${day.cls}`;
+            block.dataset.id = course.id;
+            block.style.left = `${left}%`;
+            block.style.width = `${Math.max(right - left, 0)}%`;
+            block.style.top = `${course._lane * LANE_HEIGHT + 4}px`;
+            block.style.height = `${LANE_HEIGHT - 8}px`;
+            block.tabIndex = 0;
+            block.setAttribute('role', 'button');
+
+            const details = [course.room, course.sec && `Sec ${course.sec}`, course.type].filter(Boolean);
+            block.title = `${course.code} ${course.name}\n${day.name} ${course.startTime}–${course.endTime}` + (details.length ? `\n${details.join(' | ')}` : '') + '\n(แตะเพื่อลบ)';
+            block.setAttribute('aria-label', `${course.code} ${course.name} วัน${day.name} ${course.startTime} ถึง ${course.endTime} กดเพื่อลบ`);
+
+            block.append(
+                textLine(course.code, 12, 700, '#ffffff'),
+                textLine(course.name, 10, 500, '#f3f4f6')
+            );
+            if (details.length) block.append(textLine(details.join(' | '), 9, 400, '#e5e7eb', 2));
+
+            if (animate) {
+                block.classList.add('animate-pop-in');
+                block.style.animationDelay = `${delay}s`;
+                // เอาแอนิเมชันออกหลังจบ ไม่งั้น transform ค้างและ active:scale ไม่ทำงาน
+                block.addEventListener('animationend', () => { block.classList.remove('animate-pop-in'); block.style.animationDelay = ''; }, { once: true });
+            }
+
+            const onActivate = () => removeCourse(course.id);
+            block.addEventListener('click', onActivate);
+            block.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivate(); } });
+            return block;
+        }
+
+        function renderCourses({ animateId = null, initial = false } = {}) {
+            document.querySelectorAll('.course-block').forEach(b => b.remove());
+
+            DAYS.forEach(day => {
+                const list = courses.filter(c => c.day === day.id);
+                const lanes = assignLanes(list);
+                $(`row-${day.id}`).style.height = `${lanes * LANE_HEIGHT}px`;
+                const track = $(`track-${day.id}`);
+                list.forEach(c => {
+                    const idx = courses.indexOf(c);
+                    const animate = initial || c.id === animateId;
+                    track.appendChild(buildBlock(c, animate, initial ? idx * 0.08 : 0));
                 });
             });
 
-            courses.forEach((course, index) => {
-                const track = document.getElementById(`track-${course.day}`);
-                if (!track) return;
+            $('emptyHint').classList.toggle('hidden', courses.length > 0);
+        }
 
-                const startMins = timeToMinutes(course.startTime);
-                const endMins = timeToMinutes(course.endTime);
-                const gridStartMins = MIN_TIME * 60;
+        function saveAndRender(opts) {
+            store.set(KEY_COURSES, JSON.stringify(courses.map(({ _lane, ...c }) => c)));
+            renderCourses(opts);
+        }
 
-                const leftPercent = ((startMins - gridStartMins) / TOTAL_MINUTES) * 100;
-                const widthPercent = ((endMins - startMins) / TOTAL_MINUTES) * 100;
-
-                const dayConfig = days.find(d => d.id === course.day);
-
-                const block = document.createElement('div');
-                block.className = `course-block absolute top-1 bottom-1 rounded-md p-1.5 shadow-md flex flex-col justify-center overflow-hidden cursor-pointer hover:brightness-110 active:scale-95 transition-all border border-white/20 text-white ${dayConfig.class}`;
-                block.style.left = `${leftPercent}%`;
-                block.style.width = `${widthPercent}%`;
-                
-                if (isInitialLoad) {
-                    block.style.opacity = '0'; 
-                    block.style.animationDelay = `${index * 0.08}s`; 
-                    block.classList.add('animate-pop-in');
-                } else if (index === animateIndex) {
-                    block.classList.add('animate-pop-in'); 
-                }
-
-                block.onclick = async function() {
-                    const confirmed = await showDeleteModal(`${course.code} ${course.name}`);
-                    if(confirmed) {
-                        this.classList.remove('animate-pop-in');
-                        this.classList.add('animate-pop-out');
-                        
-                        setTimeout(() => {
-                            courses.splice(index, 1);
-                            saveAndRender();
-                        }, 300);
-                    }
-                };
-
-                let contentHTML = `
-                    <div class="font-bold text-xs whitespace-nowrap overflow-hidden text-ellipsis leading-tight">${course.code}</div>
-                    <div class="text-[10px] font-medium opacity-90 whitespace-nowrap overflow-hidden text-ellipsis leading-tight">${course.name}</div>
-                `;
-
-                let details = [];
-                if (course.room) details.push(course.room);
-                if (course.sec) details.push(`Sec ${course.sec}`);
-                if (course.type) details.push(course.type);
-
-                if (details.length > 0) {
-                    contentHTML += `<div class="text-[9px] opacity-75 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">${details.join(' | ')}</div>`;
-                }
-
-                block.innerHTML = contentHTML;
-                track.appendChild(block);
+        async function removeCourse(id) {
+            const course = courses.find(c => c.id === id);
+            if (!course) return;
+            const ok = await showConfirm({
+                title: 'ยืนยันการลบวิชา',
+                message: `ต้องการลบวิชา "${course.code} ${course.name}" ออกจากตารางหรือไม่?`,
+                okText: 'ลบวิชา'
             });
+            if (!ok) return;
+            const block = document.querySelector(`.course-block[data-id="${CSS.escape(id)}"]`);
+            if (block) { block.classList.remove('animate-pop-in'); block.classList.add('animate-pop-out'); }
+            setTimeout(() => { courses = courses.filter(c => c.id !== id); saveAndRender(); }, 300);
         }
 
-        function saveAndRender(animateIndex = -1) {
-            localStorage.setItem('ku_courses', JSON.stringify(courses));
-            renderCourses(animateIndex);
-        }
-
-        document.getElementById('courseForm').addEventListener('submit', (e) => {
+        /* ===================== เพิ่ม / ล้างวิชา ===================== */
+        $('courseForm').addEventListener('submit', e => {
             e.preventDefault();
-            
-            const startStr = document.getElementById('startTime').value;
-            const endStr = document.getElementById('endTime').value;
-
-            if (timeToMinutes(endStr) <= timeToMinutes(startStr)) {
-                alert("เวลาเลิกเรียนต้องมากกว่าเวลาเริ่มเรียน");
+            const startTime = $('startTime').value, endTime = $('endTime').value;
+            if (timeToMinutes(endTime) <= timeToMinutes(startTime)) {
+                toast('เวลาเลิกเรียนต้องมากกว่าเวลาเริ่มเรียน', 'error');
                 return;
             }
 
-            const newCourse = {
-                code: document.getElementById('courseCode').value,
-                name: document.getElementById('courseName').value,
-                sec: document.getElementById('courseSec').value,
-                type: document.getElementById('courseType').value,
-                day: document.getElementById('courseDay').value,
-                startTime: startStr,
-                endTime: endStr,
-                room: document.getElementById('courseRoom').value
+            const course = {
+                id: uid(),
+                code: $('courseCode').value.trim(),
+                name: $('courseName').value.trim(),
+                sec: $('courseSec').value.trim(),
+                type: $('courseType').value,
+                day: $('courseDay').value,
+                startTime, endTime,
+                room: $('courseRoom').value.trim()
             };
+            if (!course.code || !course.name) { toast('กรุณากรอกรหัสและชื่อวิชา', 'error'); return; }
 
-            courses.push(newCourse);
-            
-            saveAndRender(courses.length - 1); 
+            const s = timeToMinutes(startTime), en = timeToMinutes(endTime);
+            const clash = courses.find(c => c.day === course.day && timeToMinutes(c.startTime) < en && timeToMinutes(c.endTime) > s);
+
+            courses.push(course);
+            saveAndRender({ animateId: course.id });
             e.target.reset();
-            
-            document.getElementById('courseDay').value = 'mon';
-            document.getElementById('courseType').value = 'บรรยาย';
-            document.getElementById('startTime').value = '09:00';
-            document.getElementById('endTime').value = '10:30';
+            resetFormDefaults();
 
-            const btn = document.getElementById('submitBtn');
-            const originalText = '+ เพิ่มลงตาราง';
-            
-            btn.innerHTML = '✓ เพิ่มวิชาสำเร็จ!';
+            if (clash) toast(`⚠ เวลาซ้อนกับ ${clash.code} (${clash.startTime}–${clash.endTime})`, 'warn');
+
+            const btn = $('submitBtn');
+            btn.textContent = '✓ เพิ่มวิชาสำเร็จ!';
             btn.classList.add('bg-green-500', 'text-white', 'border-green-500', 'scale-[1.02]');
             btn.classList.remove('text-cyan-400', 'border-cyan-500', 'bg-transparent');
-            
             setTimeout(() => {
-                btn.innerHTML = originalText;
+                btn.textContent = '+ เพิ่มลงตาราง';
                 btn.classList.remove('bg-green-500', 'text-white', 'border-green-500', 'scale-[1.02]');
                 btn.classList.add('text-cyan-400', 'border-cyan-500', 'bg-transparent');
             }, 1200);
         });
 
-        async function clearSchedule() {
-            const confirmed = await showDeleteModal("ตารางเรียนทั้งหมด");
-            if(confirmed) {
-                const blocks = document.querySelectorAll('.course-block');
-                blocks.forEach(block => block.classList.add('animate-pop-out'));
-                
-                setTimeout(() => {
-                    courses = [];
-                    saveAndRender();
-                }, 300);
+        $('clearBtn').addEventListener('click', async () => {
+            if (!courses.length) { toast('ตารางว่างอยู่แล้ว'); return; }
+            const ok = await showConfirm({
+                title: 'ล้างตารางเรียน',
+                message: `ต้องการลบรายวิชาทั้งหมด ${courses.length} วิชาออกจากตารางหรือไม่?`,
+                okText: 'ล้างทั้งหมด'
+            });
+            if (!ok) return;
+            document.querySelectorAll('.course-block').forEach(b => { b.classList.remove('animate-pop-in'); b.classList.add('animate-pop-out'); });
+            setTimeout(() => { courses = []; saveAndRender(); }, 300);
+        });
+
+        /* ===================== Export PNG ===================== */
+        const fileName = () => {
+            const d = new Date(), p = n => String(n).padStart(2, '0');
+            return `ku-schedule-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.png`;
+        };
+
+        function setExporting(on) {
+            $('exportBtn').disabled = on;
+            $('exportLabel').textContent = on ? 'กำลังสร้างรูป...' : 'ส่งออกตารางเรียน (.png)';
+        }
+
+        async function exportTimetable() {
+            if ($('exportBtn').disabled) return;
+            if (typeof html2canvas === 'undefined') {
+                toast('โหลดตัวสร้างรูปไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วรีเฟรชหน้า', 'error');
+                return;
+            }
+            setExporting(true);
+            const container = $('timetableContainer');
+
+            try {
+                // รอฟอนต์ Prompt และรูปให้พร้อม ไม่งั้นภาพที่ได้จะใช้ฟอนต์สำรอง/รูปหาย
+                if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                await Promise.all([...container.querySelectorAll('img')].map(img => img.decode ? img.decode().catch(() => {}) : null));
+
+                const fullWidth = Math.max(container.scrollWidth, container.offsetWidth);
+                const estHeight = container.scrollHeight + 90;      // เผื่อส่วนหัว export
+                const scale = clamp(Math.sqrt(MAX_CANVAS_PIXELS / (fullWidth * estHeight)), 1, 2);
+                const usedDays = new Set(courses.map(c => c.day));
+
+                const canvas = await html2canvas(container, {
+                    backgroundColor: getComputedStyle(container).backgroundColor,
+                    scale,
+                    useCORS: true,
+                    logging: false,
+                    windowWidth: Math.max(fullWidth + 120, 1280),
+                    // ปรับแต่งเฉพาะ "สำเนา" ที่ใช้วาดภาพ ไม่กระทบหน้าจริง
+                    onclone: doc => {
+                        const el = doc.getElementById('timetableContainer');
+                        for (let p = el.parentElement; p && p !== doc.body; p = p.parentElement) {
+                            p.style.overflow = 'visible'; p.style.width = 'auto'; p.style.maxWidth = 'none';
+                        }
+                        el.style.width = `${fullWidth}px`;
+                        el.style.maxWidth = 'none';
+                        el.style.overflow = 'visible';
+                        el.style.boxShadow = 'none';
+
+                        doc.getElementById('exportHeader').classList.remove('hidden');
+                        doc.getElementById('emptyHint').remove();
+
+                        // ตัดแถวเสาร์/อาทิตย์ที่ไม่มีวิชาออกจากรูป
+                        ['sat', 'sun'].forEach(id => { if (!usedDays.has(id)) doc.getElementById(`row-${id}`)?.remove(); });
+
+                        // ปิดแอนิเมชัน/ทรานสิชัน กันบล็อกวิชาโปร่งใสหรือค้างครึ่งทาง
+                        doc.querySelectorAll('.course-block').forEach(b => {
+                            b.style.animation = 'none'; b.style.transition = 'none';
+                            b.style.opacity = '1'; b.style.transform = 'none';
+                        });
+                    }
+                });
+
+                const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+                if (!blob) throw new Error('canvas.toBlob returned null');
+                showPreview(blob);
+            } catch (err) {
+                console.error('Export failed:', err);
+                toast('สร้างรูปไม่สำเร็จ ลองลดจำนวนวิชา หรือใช้เบราว์เซอร์อื่น (เช่น Chrome/Safari)', 'error');
+            } finally {
+                setExporting(false);
             }
         }
 
-        function exportTimetable() {
-            const container = document.getElementById('timetableContainer');
-            const exportHeader = document.getElementById('exportHeader');
-            
-            exportHeader.classList.remove('hidden'); 
-            
-            const originalWidth = container.style.width;
-            const originalMaxWidth = container.style.maxWidth;
-            const fullWidth = container.scrollWidth;
-            
-            container.style.width = fullWidth + 'px';
-            container.style.maxWidth = 'none';
+        function showPreview(blob) {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+            previewBlob = blob;
+            previewUrl = URL.createObjectURL(blob);
+            $('previewImg').src = previewUrl;
+            const a = $('previewDownload');
+            a.href = previewUrl;
+            a.download = fileName();
 
-            html2canvas(container, {
-                backgroundColor: getComputedStyle(container).backgroundColor,
-                scale: 2,
-                useCORS: true,
-                width: fullWidth,
-                windowWidth: fullWidth
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'ku-schedule.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                
-                container.style.width = originalWidth;
-                container.style.maxWidth = originalMaxWidth;
-                exportHeader.classList.add('hidden');
-            });
+            const canShare = !!(navigator.canShare && navigator.canShare({ files: [new File([blob], 'x.png', { type: 'image/png' })] }));
+            $('previewShare').classList.toggle('hidden', !canShare);
+            show($('previewModal'));
         }
+        $('exportBtn').addEventListener('click', exportTimetable);
 
-        function setTheme(themeName) {
-            const body = document.body;
-            body.classList.remove('theme-dark', 'theme-green', 'theme-light');
-            body.classList.add(`theme-${themeName}`);
-
-            const cards = document.querySelectorAll('.card-dark, .card-green, .card-light');
-            cards.forEach(card => {
-                card.classList.remove('card-dark', 'card-green', 'card-light');
-                card.classList.add(`card-${themeName}`);
-            });
-
-            const btns = ['dark', 'green', 'light'];
-            btns.forEach(btn => {
-                const el = document.getElementById(`btn-theme-${btn}`);
-                if (btn === themeName) {
-                    el.classList.add('bg-cyan-500/20', 'text-cyan-300');
-                    if(themeName === 'light') el.classList.replace('text-cyan-300', 'text-cyan-700');
-                } else {
-                    el.classList.remove('bg-cyan-500/20', 'text-cyan-300', 'text-cyan-700');
-                }
-            });
-        }
-
-        populateTimeSelects();
+        /* ===================== เริ่มทำงาน ===================== */
+        setTheme(store.get(KEY_THEME) || 'dark');
+        populateForm();
         initializeGrid();
-        renderCourses(-1, true); 
+        renderCourses({ initial: true });
+
+        if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+        }
+    })();
     </script>
 </body>
 </html>
